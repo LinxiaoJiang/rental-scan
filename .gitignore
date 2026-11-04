@@ -1,7 +1,6 @@
 __pycache__/
 *.pyc
 .DS_Store
-*.muse-github-snapshot-sync.json
 
 # 隐私：真实台账、房源照片、本地配置不进仓库
 *.xlsx

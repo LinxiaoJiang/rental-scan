@@ -17,6 +17,7 @@
       --type A --needs "长租，预算未写" --url "https://www.facebook.com/groups/xxx/posts/yyy/" \\
       --status 待联系
   python3 rental_log.py --file <xlsx路径> update --name "Jane Doe" --dm 已 --status 已联系
+  python3 rental_log.py --file <xlsx路径> clear --yes   # 清空全部客户记录（必须带 --yes）
   python3 rental_log.py --file <xlsx路径> restyle   # 补/刷新备注行、链接样式与列宽
 """
 import argparse
@@ -34,6 +35,7 @@ NOTES = [
     "【类型】A = 求租帖（对方发帖找房，需求基本匹配）｜B = 别人出租帖下的求租评论｜C = 自己房源帖下的新评论",
     "【来源】点平台名（Facebook / 小红书）打开对应帖子 / 评论的原页面",
 ]
+SOURCES = ["Facebook", "小红书"]
 LINK_FONT = Font(color="0563C1", underline="single")
 
 
@@ -188,6 +190,8 @@ def cmd_update(wb, ws, args):
 
 
 def cmd_clear(wb, ws, args):
+    if not args.yes:
+        raise SystemExit("拒绝执行：clear 会删除全部客户记录，确认请加 --yes")
     hr = ensure_notes(ws)
     n = len(data_rows(ws, hr))
     if ws.max_row > hr:
@@ -213,12 +217,13 @@ def main():
     sub.add_parser("list")
     sub.add_parser("names")
     sub.add_parser("restyle")
-    sub.add_parser("clear")
+    c = sub.add_parser("clear", help="清空全部客户记录（需 --yes）")
+    c.add_argument("--yes", action="store_true", help="确认清空")
     a = sub.add_parser("add")
     a.add_argument("--date", help="YYYY-MM-DD，缺省今天")
     a.add_argument("--name", required=True)
     a.add_argument("--url", required=True, help="对应帖子/评论的原页面链接")
-    a.add_argument("--source", default="Facebook", help="平台显示名：Facebook 或 小红书")
+    a.add_argument("--source", default="Facebook", choices=SOURCES, help="平台显示名")
     a.add_argument("--type", required=True, choices=["A", "B", "C"])
     a.add_argument("--needs", default="")
     a.add_argument("--dm")
@@ -227,7 +232,7 @@ def main():
     u = sub.add_parser("update")
     u.add_argument("--name", required=True)
     u.add_argument("--url")
-    u.add_argument("--source")
+    u.add_argument("--source", choices=SOURCES)
     u.add_argument("--dm")
     u.add_argument("--reply")
     u.add_argument("--status")
